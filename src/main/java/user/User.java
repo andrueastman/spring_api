@@ -18,6 +18,16 @@ public class User {
     private String name;
 	@NotNull
 	private String password;
+	@NotNull
+	private String userType;
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
+	}
 
 	public Integer getId() {
 		return id;

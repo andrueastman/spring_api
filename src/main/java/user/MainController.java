@@ -23,7 +23,24 @@ public class MainController {
 		userRepository.save(n);
 		return "Saved";
 	}
-	
+
+	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	public @ResponseBody String userLogin (@RequestBody User n) {
+		// @ResponseBody means the returned String is the response, not a view name
+		// @RequestParam means it is a parameter from the GET or POST request
+
+		if(userRepository.existsByPhone(n.getPhone())){//phone number exists
+			String password = userRepository.findByPhone(n.getPhone()).getPassword();
+			if(password.equals(n.getPassword()))//password match
+				return "Login Successful";
+			else
+				return "Invalid Password";
+		}
+
+		return "Login Unsuccessful: User does not exist";
+	}
+
+
 	@GetMapping(path="/all")
 	public @ResponseBody Iterable<User> getAllUsers() {
 		// This returns a JSON or XML with the users
