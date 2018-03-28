@@ -12,19 +12,19 @@ public class MainController {
 	private UserRepository userRepository;
 
 
-	@RequestMapping(value = "/add", method = RequestMethod.POST)
+	@RequestMapping(value = "/add", method = RequestMethod.POST , produces = "application/json")
 	public @ResponseBody String addNewUser (@RequestBody User n) {
 		// @ResponseBody means the returned String is the response, not a view name
 		// @RequestParam means it is a parameter from the GET or POST request
 
         if(userRepository.existsByUserPhone(n.getUserPhone())){
-            return "Error: User already Exists";
+            return "{  \"response\" : \"User already exists\" }";
         }
 		userRepository.save(n);
-		return "Saved";
+		return "{  \"response\" : \"User Added\" }";
 	}
 
-	@RequestMapping(value = "/login", method = RequestMethod.POST)
+	@RequestMapping(value = "/login", method = RequestMethod.POST ,produces = "application/json")
 	public @ResponseBody String userLogin (@RequestBody User n) {
 		// @ResponseBody means the returned String is the response, not a view name
 		// @RequestParam means it is a parameter from the GET or POST request
@@ -32,12 +32,12 @@ public class MainController {
 		if(userRepository.existsByUserPhone(n.getUserPhone())){//phone number exists
 			String password = userRepository.findByUserPhone(n.getUserPhone()).getUserPassword();
 			if(password.equals(n.getUserPassword()))//password match
-				return "Login Successful";
+				return "{  \"response\" : \"Login Successful\" }";
 			else
-				return "Invalid Password";
+				return "{  \"response\" : \"Invalid password\" }";
 		}
 
-		return "Login Unsuccessful: User does not exist";
+		return "{  \"response\" : \"Login unsuccessful. User does not exist \" }";
 	}
 
 
