@@ -13,21 +13,13 @@ public class User {
 	private Integer id;
 
 	@NotNull
-	private String phone;
+	private String userPhone;
 	@NotNull
-    private String name;
+    private String userName;
 	@NotNull
-	private String password;
+	private String userPassword;
 	@NotNull
 	private String userType;
-
-	public String getUserType() {
-		return userType;
-	}
-
-	public void setUserType(String userType) {
-		this.userType = userType;
-	}
 
 	public Integer getId() {
 		return id;
@@ -37,28 +29,36 @@ public class User {
 		this.id = id;
 	}
 
-	public String getName() {
-		return name;
+	public String getUserPhone() {
+		return userPhone;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setUserPhone(String userPhone) {
+		this.userPhone = userPhone;
 	}
 
-	public String getPhone() {
-		return phone;
+	public String getUserName() {
+		return userName;
 	}
 
-	public void setPhone(String phone) {
-		this.phone = phone;
+	public void setUserName(String userName) {
+		this.userName = userName;
 	}
 
-	public String getPassword() {
-		return password;
+	public String getUserPassword() {
+		return userPassword;
 	}
 
-	public void setPassword(String password) {
-		this.password = password;
+	public void setUserPassword(String userPassword) {
+		this.userPassword = userPassword;
+	}
+
+	public String getUserType() {
+		return userType;
+	}
+
+	public void setUserType(String userType) {
+		this.userType = userType;
 	}
 }
 

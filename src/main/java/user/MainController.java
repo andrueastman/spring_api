@@ -17,7 +17,7 @@ public class MainController {
 		// @ResponseBody means the returned String is the response, not a view name
 		// @RequestParam means it is a parameter from the GET or POST request
 
-        if(userRepository.existsByPhone(n.getPhone())){
+        if(userRepository.existsByUserPhone(n.getUserPhone())){
             return "Error: User already Exists";
         }
 		userRepository.save(n);
@@ -29,9 +29,9 @@ public class MainController {
 		// @ResponseBody means the returned String is the response, not a view name
 		// @RequestParam means it is a parameter from the GET or POST request
 
-		if(userRepository.existsByPhone(n.getPhone())){//phone number exists
-			String password = userRepository.findByPhone(n.getPhone()).getPassword();
-			if(password.equals(n.getPassword()))//password match
+		if(userRepository.existsByUserPhone(n.getUserPhone())){//phone number exists
+			String password = userRepository.findByUserPhone(n.getUserPhone()).getUserPassword();
+			if(password.equals(n.getUserPassword()))//password match
 				return "Login Successful";
 			else
 				return "Invalid Password";
