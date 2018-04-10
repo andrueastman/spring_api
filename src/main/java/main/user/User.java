@@ -1,4 +1,4 @@
-package user;
+package main.user;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,6 +20,16 @@ public class User {
 	private String userPassword;
 	@NotNull
 	private String userType;
+	//can be null for passenger
+	private String vehicleRegistration;
+
+	public String getVehicleRegistration() {
+		return vehicleRegistration;
+	}
+
+	public void setVehicleRegistration(String vehicleRegistration) {
+		this.vehicleRegistration = vehicleRegistration;
+	}
 
 	public Integer getId() {
 		return id;
