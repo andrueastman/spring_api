@@ -11,7 +11,7 @@ import java.util.Date;
 public class Request {
     @Id
     @GeneratedValue(strategy= GenerationType.AUTO)
-    private Integer id;
+    private Long id;
 
     @NotNull
     private String userPhone;
@@ -19,11 +19,14 @@ public class Request {
     @NotNull
     private Date requestTime;
 
-    public Integer getId() {
+    private String driverPhone;
+
+
+    public Long getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -41,5 +44,13 @@ public class Request {
 
     public void setRequestTime(Date requestTime) {
         this.requestTime = requestTime;
+    }
+
+    public String getDriverPhone() {
+        return driverPhone;
+    }
+
+    public void setDriverPhone(String driverPhone) {
+        this.driverPhone = driverPhone;
     }
 }

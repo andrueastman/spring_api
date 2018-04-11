@@ -6,6 +6,8 @@ public class StandardResponse {
 
     private String message;
 
+    private String RequestId;
+
     public String getStatus() {
         return status;
     }
@@ -20,5 +22,13 @@ public class StandardResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getRequestId() {
+        return RequestId;
+    }
+
+    public void setRequestId(String requestId) {
+        RequestId = requestId;
     }
 }
