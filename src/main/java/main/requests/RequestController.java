@@ -49,14 +49,7 @@ public class RequestController {
                 return rs;
             }
 
-            //send message to driver about request
-            Pusher pusher =new Pusher(PUSHER_APPID,PUSHER_KEY,PUSHER_SECRET);
-            pusher.setCluster(PUSHER_CLUSTER);
-            pusher.setEncrypted(PUSHER_ENCRYPTION);
-
-            HashMap<String,String> driverRequest = new HashMap<>();
-            driverRequest.put("requestId",String.valueOf(newRequest.getId()));
-            pusher.trigger(driver.getUserPhone(), "ride_request",driverRequest);
+            pushRideRequestMessage(newRequest,driver);//Send out push to driver to accept ride
 
             //send ack
             rs.setStatus("Success");
@@ -75,30 +68,17 @@ public class RequestController {
 
     @RequestMapping(value = "/driver/accept", method = RequestMethod.POST , produces = "application/json")
     public @ResponseBody
-    StandardResponse driverRequestResponse (@RequestBody DriverRequestAction initialRequest) {
+    StandardResponse acceptRideRequest (@RequestBody DriverRequestAction initialRequest) {
         StandardResponse rs = new StandardResponse();//initialise
         long id = Integer.parseInt(initialRequest.getRequestId());
         if(requestRepository.existsById(Long.valueOf(id))){
-            //TODO send message to client that driver has accepted the order
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
             request.setDriverPhone(initialRequest.getDriverPhone());
             requestRepository.save(request);
 
             User driver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
 
-            Pusher pusher =new Pusher(PUSHER_APPID,PUSHER_KEY,PUSHER_SECRET);
-            pusher.setCluster(PUSHER_CLUSTER);
-            pusher.setEncrypted(PUSHER_ENCRYPTION);
-
-            //push notification to client and driver information
-            HashMap<String,String> driverRequest = new HashMap<>();
-            driverRequest.put("requestId",initialRequest.getRequestId());
-            driverRequest.put("driverName",driver.getUserName());
-            driverRequest.put("driverPhone",driver.getUserPhone());
-            driverRequest.put("vehicleRegistration",driver.getVehicleRegistration());
-            driverRequest.put("latitude","11111");
-            driverRequest.put("longitude","1111");
-            pusher.trigger(request.getUserPhone(), "driver_accepted",driverRequest);
+            pushAcceptedRideRequestMessage(request,driver);//send to rider
 
             //send ack
             rs.setStatus("Success");
@@ -113,10 +93,121 @@ public class RequestController {
         return rs;
     }
 
+    @RequestMapping(value = "/driver/reject", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse rejectRideRequest (@RequestBody DriverRequestAction initialRequest) {
+        StandardResponse rs = new StandardResponse();//initialise
+        long id = Integer.parseInt(initialRequest.getRequestId());
+        if(requestRepository.existsById(Long.valueOf(id))){
+            Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
+            //TODO log the rejection
+            //request.setDriverPhone(initialRequest.getDriverPhone());
+            //requestRepository.save(request);
+
+            //TODO find another driver
+            User driver = userRepository.findByUserPhone("0720844920");//sample driver
+
+            if(driver != null){
+                pushRideRequestMessage(request,driver);//send out new request
+            }
+            else{
+                User rider = userRepository.findByUserPhone(request.getUserPhone());
+                pushNoDriverAvailableMessage(request,rider);
+            }
+
+
+            //send ack
+            rs.setStatus("Success");
+            rs.setMessage("Request Successfully made");
+            rs.setRequestId(initialRequest.getRequestId());
+        }
+        else{
+            rs.setStatus("Error");
+            rs.setMessage("Invalid Request");
+        }
+
+        return rs;
+    }
+
+    @RequestMapping(value = "/startRide", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse startRide (@RequestBody DriverRequestAction initialRequest) {//Driver will start the ride
+        StandardResponse rs = new StandardResponse();//initialise
+        long id = Integer.parseInt(initialRequest.getRequestId());
+        if(requestRepository.existsById(Long.valueOf(id))){
+            Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
+            request.setRideStartTime(new Date());//set time to now
+            requestRepository.save(request);
+
+            User rider = userRepository.findByUserPhone(request.getUserPhone());
+            pushRideStartedMessage(request,rider);
+
+            //send ack
+            rs.setStatus("Success");
+            rs.setMessage("Request Successfully made");
+            rs.setRequestId(initialRequest.getRequestId());
+        }
+        else{
+            rs.setStatus("Error");
+            rs.setMessage("Invalid Request");
+        }
+
+        return rs;
+    }
 
     @GetMapping(path="/all")
     public @ResponseBody Iterable<Request> getAllUsers() {
         // This returns a JSON or XML with the main.requests
         return requestRepository.findAll();
+    }
+
+    private Pusher initializePusher(){
+        Pusher pusher =new Pusher(PUSHER_APPID,PUSHER_KEY,PUSHER_SECRET);
+        pusher.setCluster(PUSHER_CLUSTER);
+        pusher.setEncrypted(PUSHER_ENCRYPTION);
+        return pusher;
+    }
+
+    private void pushRideStartedMessage(Request request, User rider) {
+        Pusher pusher = initializePusher();
+        HashMap<String,String> rideStartedMessage = new HashMap<>();
+        rideStartedMessage.put("requestId",String.valueOf(request.getId()));
+        rideStartedMessage.put("status","Success");
+        rideStartedMessage.put("message","Ride Started");
+        pusher.trigger(rider.getUserPhone(), "ride_started",rideStartedMessage);
+    }
+
+    private void pushNoDriverAvailableMessage(Request request, User rider) {
+        //send message to driver about request
+        Pusher pusher = initializePusher();
+        HashMap<String,String> riderInformation = new HashMap<>();
+        riderInformation.put("requestId",String.valueOf(request.getId()));
+        riderInformation.put("status","Error");
+        riderInformation.put("message","No driver Available");
+        pusher.trigger(rider.getUserPhone(), "no_driver",riderInformation);
+    }
+
+    private void pushRideRequestMessage(Request request, User driver){
+        //send message to driver about request
+        Pusher pusher = initializePusher();
+
+        HashMap<String,String> driverRequest = new HashMap<>();
+        driverRequest.put("requestId",String.valueOf(request.getId()));
+        driverRequest.put("status","Success");
+        pusher.trigger(driver.getUserPhone(), "ride_request",driverRequest);
+    }
+
+    private void pushAcceptedRideRequestMessage(Request request, User driver){//destination is rider
+        Pusher pusher = initializePusher();
+
+        //push notification to client and driver information
+        HashMap<String,String> driverRequest = new HashMap<>();
+        driverRequest.put("requestId",String.valueOf(request.getId()));
+        driverRequest.put("driverName",driver.getUserName());
+        driverRequest.put("driverPhone",driver.getUserPhone());
+        driverRequest.put("vehicleRegistration",driver.getVehicleRegistration());
+        driverRequest.put("latitude","11111");
+        driverRequest.put("longitude","1111");
+        pusher.trigger(request.getUserPhone(), "driver_accepted",driverRequest);
     }
 }

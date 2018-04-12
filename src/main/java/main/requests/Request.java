@@ -21,6 +21,7 @@ public class Request {
 
     private String driverPhone;
 
+    private Date rideStartTime;
 
     public Long getId() {
         return id;
@@ -52,5 +53,13 @@ public class Request {
 
     public void setDriverPhone(String driverPhone) {
         this.driverPhone = driverPhone;
+    }
+
+    public Date getRideStartTime() {
+        return rideStartTime;
+    }
+
+    public void setRideStartTime(Date rideStartTime) {
+        this.rideStartTime = rideStartTime;
     }
 }
