@@ -190,7 +190,7 @@ public class RequestController {
     private void pushRideRequestMessage(Request request, User driver){
         //send message to driver about request
         Pusher pusher = initializePusher();
-
+        //TODO add more information about distation and source of driver
         HashMap<String,String> driverRequest = new HashMap<>();
         driverRequest.put("requestId",String.valueOf(request.getId()));
         driverRequest.put("status","Success");
