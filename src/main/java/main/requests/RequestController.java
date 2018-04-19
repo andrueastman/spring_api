@@ -21,9 +21,9 @@ public class RequestController {
     @Autowired
     private UserRepository userRepository;
 
-    public final String PUSHER_APPID= "397646";
-    public final String PUSHER_KEY= "09d58b5d944ada6621ea";
-    public final String PUSHER_SECRET= "abb0ba8c99a964cd3d7e";
+    public final String PUSHER_APPID= "507480";
+    public final String PUSHER_KEY= "830d3e455fd9cfbcec39";
+    public final String PUSHER_SECRET= "896c5ab9b5d25bebcad2";
     public final String PUSHER_CLUSTER= "ap2";
     public final boolean PUSHER_ENCRYPTION= true;
 
