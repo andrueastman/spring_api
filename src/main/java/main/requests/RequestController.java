@@ -33,9 +33,12 @@ public class RequestController {
         StandardResponse rs = new StandardResponse();//initialise
         if(userRepository.existsByUserPhone(initialRequest.getUserPhone()))
         {
+            System.out.println(initialRequest.toString());//TODO comment this out.
             Request newRequest = new Request();
+            User rider = userRepository.findByUserPhone(initialRequest.getUserPhone());
             newRequest.setUserPhone(initialRequest.getUserPhone());//save the phone number of the requester
             newRequest.setRequestTime(new Date());//set date to now
+            //TODO save information form the DB including source and destination latLongs
 
             requestRepository.save(newRequest);
 
@@ -49,7 +52,7 @@ public class RequestController {
                 return rs;
             }
 
-            pushRideRequestMessage(newRequest,driver);//Send out push to driver to accept ride
+            pushRideRequestMessage(newRequest,driver, rider);//Send out push to driver to accept ride
 
             //send ack
             rs.setStatus("Success");
@@ -105,13 +108,13 @@ public class RequestController {
             //requestRepository.save(request);
 
             //TODO find another driver
-            User driver = userRepository.findByUserPhone("0720844920");//sample driver
-
+            User driver = userRepository.findByUserPhone("0720844920");//sample driver//TODO remove this and replace with actual driver
+            User rider = userRepository.findByUserPhone(request.getUserPhone());
             if(driver != null){
-                pushRideRequestMessage(request,driver);//send out new request
+                pushRideRequestMessage(request,driver,rider);//send out new request
             }
             else{
-                User rider = userRepository.findByUserPhone(request.getUserPhone());
+                //User rider = userRepository.findByUserPhone(request.getUserPhone());
                 pushNoDriverAvailableMessage(request,rider);
             }
 
@@ -187,13 +190,20 @@ public class RequestController {
         pusher.trigger(rider.getUserPhone(), "no_driver",riderInformation);
     }
 
-    private void pushRideRequestMessage(Request request, User driver){
+    private void pushRideRequestMessage(Request request, User driver, User rider){
         //send message to driver about request
         Pusher pusher = initializePusher();
         //TODO add more information about distation and source of driver
         HashMap<String,String> driverRequest = new HashMap<>();
         driverRequest.put("requestId",String.valueOf(request.getId()));
         driverRequest.put("status","Success");
+        driverRequest.put("riderPhone",request.getUserPhone());
+        driverRequest.put("riderName", rider.getUserName());
+        driverRequest.put("sourceLatitude",request.getSourceLatitude());
+        driverRequest.put("destinationLatitude",request.getDestinationLatitude());
+        driverRequest.put("sourceLongitude",request.getSourceLongitude());
+        driverRequest.put("destinationLongitude",request.getDestinationLatitude());
+        driverRequest.put("destinationDesc",request.getDestinationDescription());
         pusher.trigger(driver.getUserPhone(), "ride_request",driverRequest);
     }
 
