@@ -3,9 +3,15 @@ package main.requests.json_templates;
 public class InitialRequest {
     private String userPhone;
 
-    private String latitude;
+    private String sourceLatitude;
 
-    private String longitude;
+    private String sourceLongitude;
+
+    private String destinationLongitude;
+
+    private String destinationLatitude;
+
+    private String destinationDescription;
 
     public String getUserPhone() {
         return userPhone;
@@ -15,19 +21,43 @@ public class InitialRequest {
         this.userPhone = userPhone;
     }
 
-    public String getLatitude() {
-        return latitude;
+    public String getSourceLatitude() {
+        return sourceLatitude;
     }
 
-    public void setLatitude(String latitude) {
-        this.latitude = latitude;
+    public void setSourceLatitude(String sourceLatitude) {
+        this.sourceLatitude = sourceLatitude;
     }
 
-    public String getLongitude() {
-        return longitude;
+    public String getSourceLongitude() {
+        return sourceLongitude;
     }
 
-    public void setLongitude(String longitude) {
-        this.longitude = longitude;
+    public void setSourceLongitude(String sourceLongitude) {
+        this.sourceLongitude = sourceLongitude;
+    }
+
+    public String getDestinationLongitude() {
+        return destinationLongitude;
+    }
+
+    public void setDestinationLongitude(String destinationLongitude) {
+        this.destinationLongitude = destinationLongitude;
+    }
+
+    public String getDestinationLatitude() {
+        return destinationLatitude;
+    }
+
+    public void setDestinationLatitude(String destinationLatitude) {
+        this.destinationLatitude = destinationLatitude;
+    }
+
+    public String getDestinationDescription() {
+        return destinationDescription;
+    }
+
+    public void setDestinationDescription(String destinationDescription) {
+        this.destinationDescription = destinationDescription;
     }
 }

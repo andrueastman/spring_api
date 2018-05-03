@@ -33,7 +33,6 @@ public class RequestController {
         StandardResponse rs = new StandardResponse();//initialise
         if(userRepository.existsByUserPhone(initialRequest.getUserPhone()))
         {
-            System.out.println(initialRequest.toString());//TODO comment this out.
             Request newRequest = new Request();
             User rider = userRepository.findByUserPhone(initialRequest.getUserPhone());
             newRequest.setUserPhone(initialRequest.getUserPhone());//save the phone number of the requester
@@ -193,7 +192,6 @@ public class RequestController {
     private void pushRideRequestMessage(Request request, User driver, User rider){
         //send message to driver about request
         Pusher pusher = initializePusher();
-        //TODO add more information about distation and source of driver
         HashMap<String,String> driverRequest = new HashMap<>();
         driverRequest.put("requestId",String.valueOf(request.getId()));
         driverRequest.put("status","Success");
