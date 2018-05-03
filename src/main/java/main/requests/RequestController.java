@@ -44,6 +44,11 @@ public class RequestController {
             newRequest.setDestinationDescription(initialRequest.getDestinationDescription());
             requestRepository.save(newRequest);
 
+            rider.setCurrentLongitude(initialRequest.getSourceLongitude());
+            rider.setCurrentLatitude(initialRequest.getSourceLatitude());
+            userRepository.save(rider);
+
+            
             //TODO get longitude and Lattitude of the the requester and search for closest driver on the db
             User driver = userRepository.findByUserPhone("0720844920");//sample driver
 
@@ -82,6 +87,9 @@ public class RequestController {
             requestRepository.save(request);
 
             User driver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
+            driver.setCurrentLatitude(initialRequest.getDriverLatitude());
+            driver.setCurrentLongitude(initialRequest.getDriverLongitude());
+            userRepository.save(driver);//update driver location
 
             pushAcceptedRideRequestMessage(request,driver);//send to rider
 
@@ -217,8 +225,8 @@ public class RequestController {
         driverRequest.put("driverName",driver.getUserName());
         driverRequest.put("driverPhone",driver.getUserPhone());
         driverRequest.put("vehicleRegistration",driver.getVehicleRegistration());
-        driverRequest.put("latitude","11111");
-        driverRequest.put("longitude","1111");
+        driverRequest.put("latitude",driver.getCurrentLatitude());
+        driverRequest.put("longitude",driver.getCurrentLongitude());
         pusher.trigger(request.getUserPhone(), "driver_accepted",driverRequest);
     }
 }

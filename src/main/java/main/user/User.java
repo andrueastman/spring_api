@@ -23,6 +23,12 @@ public class User {
 	//can be null for passenger
 	private String vehicleRegistration;
 
+	private String currentLatitude;
+
+	private String currentLongitude;
+
+	private Boolean availability;
+
 	public String getVehicleRegistration() {
 		return vehicleRegistration;
 	}
@@ -69,6 +75,30 @@ public class User {
 
 	public void setUserType(String userType) {
 		this.userType = userType;
+	}
+
+	public String getCurrentLatitude() {
+		return currentLatitude;
+	}
+
+	public void setCurrentLatitude(String currentLatitude) {
+		this.currentLatitude = currentLatitude;
+	}
+
+	public String getCurrentLongitude() {
+		return currentLongitude;
+	}
+
+	public void setCurrentLongitude(String currentLongitude) {
+		this.currentLongitude = currentLongitude;
+	}
+
+	public Boolean getAvailability() {
+		return availability;
+	}
+
+	public void setAvailability(Boolean availability) {
+		this.availability = availability;
 	}
 }
 

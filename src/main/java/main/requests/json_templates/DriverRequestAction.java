@@ -5,6 +5,10 @@ public class DriverRequestAction {
 
     String driverPhone;
 
+    String driverLongitude;
+
+    String driverLatitude;
+
     public String getRequestId() {
         return requestId;
     }
@@ -19,5 +23,21 @@ public class DriverRequestAction {
 
     public void setDriverPhone(String driverPhone) {
         this.driverPhone = driverPhone;
+    }
+
+    public String getDriverLongitude() {
+        return driverLongitude;
+    }
+
+    public void setDriverLongitude(String driverLongitude) {
+        this.driverLongitude = driverLongitude;
+    }
+
+    public String getDriverLatitude() {
+        return driverLatitude;
+    }
+
+    public void setDriverLatitude(String driverLatitude) {
+        this.driverLatitude = driverLatitude;
     }
 }
