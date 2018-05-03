@@ -37,8 +37,11 @@ public class RequestController {
             User rider = userRepository.findByUserPhone(initialRequest.getUserPhone());
             newRequest.setUserPhone(initialRequest.getUserPhone());//save the phone number of the requester
             newRequest.setRequestTime(new Date());//set date to now
-            //TODO save information form the DB including source and destination latLongs
-
+            newRequest.setSourceLatitude(initialRequest.getSourceLatitude());
+            newRequest.setSourceLongitude(initialRequest.getSourceLongitude());
+            newRequest.setDestinationLatitude(initialRequest.getDestinationLatitude());
+            newRequest.setDestinationLongitude(initialRequest.getDestinationLongitude());
+            newRequest.setDestinationDescription(initialRequest.getDestinationDescription());
             requestRepository.save(newRequest);
 
             //TODO get longitude and Lattitude of the the requester and search for closest driver on the db
@@ -201,7 +204,7 @@ public class RequestController {
         driverRequest.put("destinationLatitude",request.getDestinationLatitude());
         driverRequest.put("sourceLongitude",request.getSourceLongitude());
         driverRequest.put("destinationLongitude",request.getDestinationLatitude());
-        driverRequest.put("destinationDesc",request.getDestinationDescription());
+        driverRequest.put("destinationDescription",request.getDestinationDescription());
         pusher.trigger(driver.getUserPhone(), "ride_request",driverRequest);
     }
 
