@@ -1,6 +1,7 @@
 package main.requests;
 
 import com.pusher.rest.Pusher;
+import main.requests.json_templates.DriverLocationUpdate;
 import main.requests.json_templates.DriverRequestAction;
 import main.requests.json_templates.StandardResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +49,7 @@ public class RequestController {
             rider.setCurrentLatitude(initialRequest.getSourceLatitude());
             userRepository.save(rider);
 
-            
+
             //TODO get longitude and Lattitude of the the requester and search for closest driver on the db
             User driver = userRepository.findByUserPhone("0720844920");//sample driver
 
@@ -128,6 +129,34 @@ public class RequestController {
                 pushNoDriverAvailableMessage(request,rider);
             }
 
+
+            //send ack
+            rs.setStatus("Success");
+            rs.setMessage("Request Successfully made");
+            rs.setRequestId(initialRequest.getRequestId());
+        }
+        else{
+            rs.setStatus("Error");
+            rs.setMessage("Invalid Request");
+        }
+
+        return rs;
+    }
+
+    @RequestMapping(value = "/driver/location/update", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse updateDriverLocation (@RequestBody DriverLocationUpdate initialRequest) {
+        StandardResponse rs = new StandardResponse();//initialise
+        long id = Integer.parseInt(initialRequest.getRequestId());
+        if(requestRepository.existsById(Long.valueOf(id))){
+            Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
+
+            User driver = userRepository.findByUserPhone(request.getDriverPhone());
+            driver.setCurrentLatitude(initialRequest.getDriverLatitude());
+            driver.setCurrentLongitude(initialRequest.getDriverLongitude());
+            userRepository.save(driver);
+
+            pushDriverLocationUpdateToRider(request,driver);
 
             //send ack
             rs.setStatus("Success");
@@ -225,8 +254,19 @@ public class RequestController {
         driverRequest.put("driverName",driver.getUserName());
         driverRequest.put("driverPhone",driver.getUserPhone());
         driverRequest.put("vehicleRegistration",driver.getVehicleRegistration());
-        driverRequest.put("latitude",driver.getCurrentLatitude());
-        driverRequest.put("longitude",driver.getCurrentLongitude());
+        driverRequest.put("driverLatitude",driver.getCurrentLatitude());
+        driverRequest.put("driverLongitude",driver.getCurrentLongitude());
         pusher.trigger(request.getUserPhone(), "driver_accepted",driverRequest);
+    }
+
+    private void pushDriverLocationUpdateToRider(Request request, User driver) {
+        Pusher pusher = initializePusher();
+        HashMap<String,String> driverLocationUpdate = new HashMap<>();
+        driverLocationUpdate.put("requestId",String.valueOf(request.getId()));
+        driverLocationUpdate.put("status","Success");
+        driverLocationUpdate.put("message","Driver Location Updated");
+        driverLocationUpdate.put("driverLatitude",driver.getCurrentLatitude());
+        driverLocationUpdate.put("driverLongitude",driver.getCurrentLongitude());
+        pusher.trigger(request.getUserPhone(), "driver_location_updated",driverLocationUpdate);
     }
 }
