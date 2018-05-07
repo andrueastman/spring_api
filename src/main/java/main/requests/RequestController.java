@@ -163,6 +163,17 @@ public class RequestController {
             rs.setMessage("Request Successfully made");
             rs.setRequestId(initialRequest.getRequestId());
         }
+        else if(initialRequest.getRequestId().equals("UPDATE"))
+        {
+            User driver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
+            driver.setCurrentLatitude(initialRequest.getDriverLatitude());
+            driver.setCurrentLongitude(initialRequest.getDriverLongitude());
+            userRepository.save(driver);
+
+            //send ack
+            rs.setStatus("Success");
+            rs.setMessage("Request Successfully made");
+        }
         else{
             rs.setStatus("Error");
             rs.setMessage("Invalid Request");
