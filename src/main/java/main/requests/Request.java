@@ -23,6 +23,8 @@ public class Request {
 
     private Date rideStartTime;
 
+    private Date rideEndTime;
+
     private String sourceLatitude;
 
     private String sourceLongitude;
@@ -32,6 +34,8 @@ public class Request {
     private String destinationLongitude;
 
     private String destinationDescription;
+
+    private String cost;
 
     public Long getId() {
         return id;
@@ -111,5 +115,21 @@ public class Request {
 
     public void setDestinationDescription(String destinationDescription) {
         this.destinationDescription = destinationDescription;
+    }
+
+    public Date getRideEndTime() {
+        return rideEndTime;
+    }
+
+    public void setRideEndTime(Date rideEndTime) {
+        this.rideEndTime = rideEndTime;
+    }
+
+    public String getCost() {
+        return cost;
+    }
+
+    public void setCost(String cost) {
+        this.cost = cost;
     }
 }

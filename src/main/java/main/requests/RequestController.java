@@ -1,13 +1,10 @@
 package main.requests;
 
 import com.pusher.rest.Pusher;
-import main.requests.json_templates.DriverLocationUpdate;
-import main.requests.json_templates.DriverRequestAction;
-import main.requests.json_templates.StandardResponse;
+import main.requests.json_templates.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
-import main.requests.json_templates.InitialRequest;
 import main.user.User;
 import main.user.UserRepository;
 
@@ -208,6 +205,37 @@ public class RequestController {
         return rs;
     }
 
+    @RequestMapping(value = "/complete", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse completeRide (@RequestBody RideComplete initialRequest) {//Driver will start the ride
+        StandardResponse rs = new StandardResponse();//initialise
+        long id = Integer.parseInt(initialRequest.getRequestId());
+        if(requestRepository.existsById(Long.valueOf(id))){
+            Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
+            request.setRideEndTime(new Date());//set time to now
+            long minutes = (request.getRideEndTime().getTime()- request.getRideStartTime().getTime())/(60*1000);
+            int distance = Integer.parseInt(initialRequest.getDistance());
+            long cost = minutes * 34 + distance*10;//TODO use a DB value for this
+
+            request.setCost(""+cost);
+            requestRepository.save(request);
+
+            User rider = userRepository.findByUserPhone(request.getUserPhone());
+            pushRideCompletedMessage(request,rider);
+
+            //send ack
+            rs.setStatus("Success");
+            rs.setMessage("Request Successfully made");
+            rs.setRequestId(initialRequest.getRequestId());
+        }
+        else{
+            rs.setStatus("Error");
+            rs.setMessage("Invalid Request");
+        }
+
+        return rs;
+    }
+
     @GetMapping(path="/all")
     public @ResponseBody Iterable<Request> getAllUsers() {
         // This returns a JSON or XML with the main.requests
@@ -230,6 +258,18 @@ public class RequestController {
         pusher.trigger(rider.getUserPhone(), "ride_started",rideStartedMessage);
     }
 
+    private void pushRideCompletedMessage(Request request, User rider) {
+        Pusher pusher = initializePusher();
+        HashMap<String,String> rideCompletedMessage = new HashMap<>();
+        rideCompletedMessage.put("requestId",String.valueOf(request.getId()));
+        rideCompletedMessage.put("status","Success");
+        rideCompletedMessage.put("message","Ride Completed");
+        rideCompletedMessage.put("cost",request.getCost());
+
+        //push to both guys
+        pusher.trigger(rider.getUserPhone(), "ride_completed",rideCompletedMessage);
+        pusher.trigger(request.getDriverPhone(), "ride_completed",rideCompletedMessage);
+    }
     private void pushNoDriverAvailableMessage(Request request, User rider) {
         //send message to driver about request
         Pusher pusher = initializePusher();
