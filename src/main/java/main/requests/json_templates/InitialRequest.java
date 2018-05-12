@@ -13,6 +13,8 @@ public class InitialRequest {
 
     private String destinationDescription;
 
+    private String sourceDescription;
+
     public String getUserPhone() {
         return userPhone;
     }
@@ -59,5 +61,13 @@ public class InitialRequest {
 
     public void setDestinationDescription(String destinationDescription) {
         this.destinationDescription = destinationDescription;
+    }
+
+    public String getSourceDescription() {
+        return sourceDescription;
+    }
+
+    public void setSourceDescription(String sourceDescription) {
+        this.sourceDescription = sourceDescription;
     }
 }

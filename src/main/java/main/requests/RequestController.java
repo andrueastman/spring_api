@@ -40,6 +40,7 @@ public class RequestController {
             newRequest.setDestinationLatitude(initialRequest.getDestinationLatitude());
             newRequest.setDestinationLongitude(initialRequest.getDestinationLongitude());
             newRequest.setDestinationDescription(initialRequest.getDestinationDescription());
+            newRequest.setSourceDescription(initialRequest.getSourceDescription());
             requestRepository.save(newRequest);
 
             rider.setCurrentLongitude(initialRequest.getSourceLongitude());
@@ -179,6 +180,26 @@ public class RequestController {
         return rs;
     }
 
+    @RequestMapping(value = "/driver/availability", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse setDriverAvailability (@RequestBody AvailabilityStatus initialRequest) {
+        StandardResponse rs = new StandardResponse();//initialise
+
+        User driver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
+        if(initialRequest.getAvailability().equals("true"))
+        {
+            driver.setAvailability(true);
+        }
+        else{
+            driver.setAvailability(false);
+        }
+
+        rs.setStatus("Success");
+        rs.setStatus("Driver Availability has been updated");
+        return rs;
+    }
+
+
     @RequestMapping(value = "/startRide", method = RequestMethod.POST , produces = "application/json")
     public @ResponseBody
     StandardResponse startRide (@RequestBody DriverRequestAction initialRequest) {//Driver will start the ride
@@ -215,8 +236,9 @@ public class RequestController {
             request.setRideEndTime(new Date());//set time to now
             long minutes = (request.getRideEndTime().getTime()- request.getRideStartTime().getTime())/(60*1000);
             int distance = Integer.parseInt(initialRequest.getDistance());
-            long cost = minutes * 34 + distance*10;//TODO use a DB value for this
-
+            int basefare = 120;
+            long cost = basefare + (minutes * 2) + (distance * 28); //TODO use a DB value for this
+            request.setRideTime(""+minutes);
             request.setCost(""+cost);
             requestRepository.save(request);
 
@@ -227,6 +249,49 @@ public class RequestController {
             rs.setStatus("Success");
             rs.setMessage("Request Successfully made");
             rs.setRequestId(initialRequest.getRequestId());
+        }
+        else{
+            rs.setStatus("Error");
+            rs.setMessage("Invalid Request");
+        }
+
+        return rs;
+    }
+
+    @RequestMapping(value = "/cancel", method = RequestMethod.POST , produces = "application/json")
+    public @ResponseBody
+    StandardResponse cancelRide (@RequestBody DriverRequestAction initialRequest) {//Driver will start the ride
+        StandardResponse rs = new StandardResponse();//initialise
+        long id = Integer.parseInt(initialRequest.getRequestId());
+        if(requestRepository.existsById(Long.valueOf(id))){
+            Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
+
+            User user = userRepository.findByUserPhone(initialRequest.getDriverPhone());//TODO this could also be a normal user. Needs rephrasing
+
+            if(user != null){
+                if(user.getUserType()=="Driver"){//driver cancelled the request.
+                    User rider = userRepository.findByUserPhone(request.getUserPhone());
+                    pushRideCancelledMessage(request,user);
+                    pushRideCancelledMessage(request,rider);
+                }
+                else{//its a customer
+                    pushRideCancelledMessage(request,user);
+                    //send message to driver if one has been assigned
+                    if(request.getDriverPhone()!=null){
+                        User driver = userRepository.findByUserPhone(request.getDriverPhone());
+                        pushRideCancelledMessage(request,driver);
+                    }
+                }
+                //send ack
+                rs.setStatus("Success");
+                rs.setMessage("Request Successfully made");
+                rs.setRequestId(initialRequest.getRequestId());
+                return rs;
+            }
+
+            rs.setStatus("Error");
+            rs.setMessage("Invalid User");
+
         }
         else{
             rs.setStatus("Error");
@@ -249,6 +314,15 @@ public class RequestController {
         return pusher;
     }
 
+    private void pushRideCancelledMessage(Request request, User user) {//push to the user passed as parameter
+        Pusher pusher = initializePusher();
+        HashMap<String,String> rideCancelledMessage = new HashMap<>();
+        rideCancelledMessage.put("requestId",String.valueOf(request.getId()));
+        rideCancelledMessage.put("status","Success");
+        rideCancelledMessage.put("message","Ride Cancelled");
+        pusher.trigger(user.getUserPhone(), "ride_cancelled",rideCancelledMessage);
+    }
+
     private void pushRideStartedMessage(Request request, User rider) {
         Pusher pusher = initializePusher();
         HashMap<String,String> rideStartedMessage = new HashMap<>();
@@ -265,11 +339,13 @@ public class RequestController {
         rideCompletedMessage.put("status","Success");
         rideCompletedMessage.put("message","Ride Completed");
         rideCompletedMessage.put("cost",request.getCost());
+        rideCompletedMessage.put("rideTime",request.getRideTime());
 
         //push to both guys
         pusher.trigger(rider.getUserPhone(), "ride_completed",rideCompletedMessage);
         pusher.trigger(request.getDriverPhone(), "ride_completed",rideCompletedMessage);
     }
+
     private void pushNoDriverAvailableMessage(Request request, User rider) {
         //send message to driver about request
         Pusher pusher = initializePusher();
@@ -293,6 +369,7 @@ public class RequestController {
         driverRequest.put("sourceLongitude",request.getSourceLongitude());
         driverRequest.put("destinationLongitude",request.getDestinationLatitude());
         driverRequest.put("destinationDescription",request.getDestinationDescription());
+        driverRequest.put("sourceDescription",request.getSourceDescription());
         pusher.trigger(driver.getUserPhone(), "ride_request",driverRequest);
     }
 

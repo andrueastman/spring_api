@@ -37,6 +37,10 @@ public class Request {
 
     private String cost;
 
+    private String sourceDescription;
+
+    private String rideTime;
+
     public Long getId() {
         return id;
     }
@@ -131,5 +135,21 @@ public class Request {
 
     public void setCost(String cost) {
         this.cost = cost;
+    }
+
+    public String getSourceDescription() {
+        return sourceDescription;
+    }
+
+    public void setSourceDescription(String sourceDescription) {
+        this.sourceDescription = sourceDescription;
+    }
+
+    public String getRideTime() {
+        return rideTime;
+    }
+
+    public void setRideTime(String rideTime) {
+        this.rideTime = rideTime;
     }
 }
