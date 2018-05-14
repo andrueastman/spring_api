@@ -41,6 +41,10 @@ public class Request {
 
     private String rideTime;
 
+    private String distanceTravelled;
+
+    private boolean rideCancelled;
+
     public Long getId() {
         return id;
     }
@@ -151,5 +155,21 @@ public class Request {
 
     public void setRideTime(String rideTime) {
         this.rideTime = rideTime;
+    }
+
+    public String getDistanceTravelled() {
+        return distanceTravelled;
+    }
+
+    public void setDistanceTravelled(String distanceTravelled) {
+        this.distanceTravelled = distanceTravelled;
+    }
+
+    public boolean isRideCancelled() {
+        return rideCancelled;
+    }
+
+    public void setRideCancelled(boolean rideCancelled) {
+        this.rideCancelled = rideCancelled;
     }
 }

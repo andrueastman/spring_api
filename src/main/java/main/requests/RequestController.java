@@ -240,6 +240,7 @@ public class RequestController {
             long cost = basefare + (minutes * 2) + (distance * 28); //TODO use a DB value for this
             request.setRideTime(""+minutes);
             request.setCost(""+cost);
+            request.setDistanceTravelled(initialRequest.getDistance());
             requestRepository.save(request);
 
             User rider = userRepository.findByUserPhone(request.getUserPhone());
@@ -266,7 +267,7 @@ public class RequestController {
         if(requestRepository.existsById(Long.valueOf(id))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
 
-            User user = userRepository.findByUserPhone(initialRequest.getDriverPhone());//TODO this could also be a normal user. Needs rephrasing
+            User user = userRepository.findByUserPhone(initialRequest.getDriverPhone());//TODO this could also be a normal user. The variable name rephrasing
 
             if(user != null){
                 if(user.getUserType()=="Driver"){//driver cancelled the request.
@@ -282,6 +283,11 @@ public class RequestController {
                         pushRideCancelledMessage(request,driver);
                     }
                 }
+                request.setRideCancelled(true);
+                requestRepository.save(request);
+
+                //TODO log cancellation to DB
+
                 //send ack
                 rs.setStatus("Success");
                 rs.setMessage("Request Successfully made");
@@ -340,6 +346,7 @@ public class RequestController {
         rideCompletedMessage.put("message","Ride Completed");
         rideCompletedMessage.put("cost",request.getCost());
         rideCompletedMessage.put("rideTime",request.getRideTime());
+        rideCompletedMessage.put("distance",request.getDistanceTravelled());
 
         //push to both guys
         pusher.trigger(rider.getUserPhone(), "ride_completed",rideCompletedMessage);
