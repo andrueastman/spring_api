@@ -9,4 +9,5 @@ public interface UserRepository extends CrudRepository<User, Long> {
 
     boolean existsByUserPhone(String phone);
     User findByUserPhone(String phone);
+    Iterable<User> findAllByAvailability(boolean availability);
 }

@@ -1,5 +1,6 @@
 package main.requests;
 
+import com.google.maps.model.LatLng;
 import com.pusher.rest.Pusher;
 import main.requests.json_templates.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import main.user.User;
 import main.user.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 
@@ -24,6 +26,7 @@ public class RequestController {
     public final String PUSHER_SECRET= "896c5ab9b5d25bebcad2";
     public final String PUSHER_CLUSTER= "ap2";
     public final boolean PUSHER_ENCRYPTION= true;
+    public final double DISTANCE_THRESHOLD = 5.0;//
 
     @RequestMapping(value = "/new", method = RequestMethod.POST , produces = "application/json")
     public @ResponseBody
@@ -47,9 +50,8 @@ public class RequestController {
             rider.setCurrentLatitude(initialRequest.getSourceLatitude());
             userRepository.save(rider);
 
-
-            //TODO get longitude and Lattitude of the the requester and search for closest driver on the db
-            User driver = userRepository.findByUserPhone("0720844920");//sample driver
+            LatLng customerLocation = new LatLng(Double.parseDouble(rider.getCurrentLatitude()),Double.parseDouble(rider.getCurrentLongitude()));
+            User driver = getClosestDriverToCustomer(customerLocation,null);//no exceptions
 
             if(driver == null)
             {
@@ -73,6 +75,47 @@ public class RequestController {
 
         }
         return rs;
+    }
+
+    private User getClosestDriverToCustomer(LatLng customerLocation, ArrayList<User> exceptions) {
+        Iterable <User> availableDrivers = userRepository.findAllByAvailability(true);
+        for (User possibleDriver : availableDrivers) {
+            LatLng driverLocation = new LatLng(Double.parseDouble(possibleDriver.getCurrentLatitude()),Double.parseDouble(possibleDriver.getCurrentLongitude()));
+            double distanceToCustomer = distance(driverLocation.lat,driverLocation.lng,customerLocation.lat,customerLocation.lng);
+            if(distanceToCustomer < DISTANCE_THRESHOLD){
+                if(exceptions == null)
+                    return possibleDriver;
+                else if(!exceptions.contains(possibleDriver))
+                    return possibleDriver;
+            }
+        }
+        return null;
+    }
+
+    private static double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        //convert to kilometers
+        dist = dist * 1.609344;
+
+        return (dist);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::	This function converts decimal degrees to radians						 :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    /*::	This function converts radians to decimal degrees						 :*/
+    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+    private static double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
     }
 
     @RequestMapping(value = "/driver/accept", method = RequestMethod.POST , produces = "application/json")
@@ -116,9 +159,15 @@ public class RequestController {
             //request.setDriverPhone(initialRequest.getDriverPhone());
             //requestRepository.save(request);
 
-            //TODO find another driver
-            User driver = userRepository.findByUserPhone("0720844920");//sample driver//TODO remove this and replace with actual driver
             User rider = userRepository.findByUserPhone(request.getUserPhone());
+            LatLng customerLocation = new LatLng(Double.parseDouble(rider.getCurrentLatitude()),Double.parseDouble(rider.getCurrentLongitude()));
+            ArrayList<User> driverExceptions = new ArrayList<User>();
+            //TODO look up from rejections
+            User rejectedDriver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
+            driverExceptions.add(rejectedDriver);
+
+            User driver = getClosestDriverToCustomer(customerLocation,driverExceptions);
+
             if(driver != null){
                 pushRideRequestMessage(request,driver,rider);//send out new request
             }
