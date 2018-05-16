@@ -29,6 +29,8 @@ public class User {
 
 	private Boolean availability;
 
+	private Boolean rideInProgress;
+
 	public String getVehicleRegistration() {
 		return vehicleRegistration;
 	}
@@ -99,6 +101,14 @@ public class User {
 
 	public void setAvailability(Boolean availability) {
 		this.availability = availability;
+	}
+
+	public Boolean getRideInProgress() {
+		return rideInProgress;
+	}
+
+	public void setRideInProgress(Boolean rideInProgress) {
+		this.rideInProgress = rideInProgress;
 	}
 }
 

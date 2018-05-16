@@ -20,6 +20,10 @@ public class RequestController {
     private RequestRepository requestRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private  RequestRejectionRepository requestRejectionRepository;
+    @Autowired
+    private RequestCancellationRepository requestCancellationRepository;
 
     public final String PUSHER_APPID= "507480";
     public final String PUSHER_KEY= "830d3e455fd9cfbcec39";
@@ -27,6 +31,12 @@ public class RequestController {
     public final String PUSHER_CLUSTER= "ap2";
     public final boolean PUSHER_ENCRYPTION= true;
     public final double DISTANCE_THRESHOLD = 5.0;//
+
+    //Fare multipliers
+    public final long BASEFARE = 120;
+    public final long TIME_MULTIPLIER = 2;
+    public final long DISTANCE_MULTIPLIER = 28;
+
 
     @RequestMapping(value = "/new", method = RequestMethod.POST , produces = "application/json")
     public @ResponseBody
@@ -57,8 +67,12 @@ public class RequestController {
             {
                 rs.setStatus("Error");
                 rs.setMessage("Can't find a driver");
+                pushNoDriverAvailableMessage(newRequest, rider);
                 return rs;
             }
+
+            driver.setRideInProgress(true);
+            userRepository.save(driver);
 
             pushRideRequestMessage(newRequest,driver, rider);//Send out push to driver to accept ride
 
@@ -75,47 +89,6 @@ public class RequestController {
 
         }
         return rs;
-    }
-
-    private User getClosestDriverToCustomer(LatLng customerLocation, ArrayList<User> exceptions) {
-        Iterable <User> availableDrivers = userRepository.findAllByAvailability(true);
-        for (User possibleDriver : availableDrivers) {
-            LatLng driverLocation = new LatLng(Double.parseDouble(possibleDriver.getCurrentLatitude()),Double.parseDouble(possibleDriver.getCurrentLongitude()));
-            double distanceToCustomer = distance(driverLocation.lat,driverLocation.lng,customerLocation.lat,customerLocation.lng);
-            if(distanceToCustomer < DISTANCE_THRESHOLD){
-                if(exceptions == null)
-                    return possibleDriver;
-                else if(!exceptions.contains(possibleDriver))
-                    return possibleDriver;
-            }
-        }
-        return null;
-    }
-
-    private static double distance(double lat1, double lon1, double lat2, double lon2) {
-        double theta = lon1 - lon2;
-        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
-        dist = Math.acos(dist);
-        dist = rad2deg(dist);
-        dist = dist * 60 * 1.1515;
-        //convert to kilometers
-        dist = dist * 1.609344;
-
-        return (dist);
-    }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    /*::	This function converts decimal degrees to radians						 :*/
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    private static double deg2rad(double deg) {
-        return (deg * Math.PI / 180.0);
-    }
-
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    /*::	This function converts radians to decimal degrees						 :*/
-    /*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
-    private static double rad2deg(double rad) {
-        return (rad * 180 / Math.PI);
     }
 
     @RequestMapping(value = "/driver/accept", method = RequestMethod.POST , produces = "application/json")
@@ -155,24 +128,39 @@ public class RequestController {
         long id = Integer.parseInt(initialRequest.getRequestId());
         if(requestRepository.existsById(Long.valueOf(id))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
-            //TODO log the rejection
-            //request.setDriverPhone(initialRequest.getDriverPhone());
-            //requestRepository.save(request);
+
+            //Log the rejection
+            RequestRejection requestRejection = new RequestRejection();
+            requestRejection.setRequestID(request.getId());
+            requestRejection.setDriverPhone(request.getDriverPhone());
+            requestRejection.setRejectionTime(new Date());
+
+            requestRejectionRepository.save(requestRejection);
+
+            User driver = userRepository.findByUserPhone(request.getDriverPhone());
+            driver.setRideInProgress(false);
+            userRepository.save(driver);
 
             User rider = userRepository.findByUserPhone(request.getUserPhone());
             LatLng customerLocation = new LatLng(Double.parseDouble(rider.getCurrentLatitude()),Double.parseDouble(rider.getCurrentLongitude()));
             ArrayList<User> driverExceptions = new ArrayList<User>();
-            //TODO look up from rejections
-            User rejectedDriver = userRepository.findByUserPhone(initialRequest.getDriverPhone());
-            driverExceptions.add(rejectedDriver);
 
-            User driver = getClosestDriverToCustomer(customerLocation,driverExceptions);
+            Iterable<RequestRejection> requestRejections = requestRejectionRepository.findAllByRequestID(request.getId());
+
+            for (RequestRejection rejection: requestRejections) {
+                User rejectedDriver = userRepository.findByUserPhone(rejection.getDriverPhone());
+                driverExceptions.add(rejectedDriver);
+            }
+
+            driver = getClosestDriverToCustomer(customerLocation,driverExceptions);
 
             if(driver != null){
+                driver.setRideInProgress(true);
+                userRepository.save(driver);
+
                 pushRideRequestMessage(request,driver,rider);//send out new request
             }
             else{
-                //User rider = userRepository.findByUserPhone(request.getUserPhone());
                 pushNoDriverAvailableMessage(request,rider);
             }
 
@@ -285,12 +273,17 @@ public class RequestController {
             request.setRideEndTime(new Date());//set time to now
             long minutes = (request.getRideEndTime().getTime()- request.getRideStartTime().getTime())/(60*1000);
             int distance = Integer.parseInt(initialRequest.getDistance());
-            int basefare = 120;
-            long cost = basefare + (minutes * 2) + (distance * 28); //TODO use a DB value for this
+
+            //calculate fare
+            long cost = BASEFARE + (minutes * TIME_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER);
             request.setRideTime(""+minutes);
             request.setCost(""+cost);
             request.setDistanceTravelled(initialRequest.getDistance());
             requestRepository.save(request);
+
+            User driver = userRepository.findByUserPhone(request.getDriverPhone());
+            driver.setRideInProgress(false);
+            userRepository.save(driver);
 
             User rider = userRepository.findByUserPhone(request.getUserPhone());
             pushRideCompletedMessage(request,rider);
@@ -316,10 +309,16 @@ public class RequestController {
         if(requestRepository.existsById(Long.valueOf(id))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
 
-            User user = userRepository.findByUserPhone(initialRequest.getDriverPhone());//TODO this could also be a normal user. The variable name rephrasing
+            if(request.getDriverPhone() != null){
+                User driver = userRepository.findByUserPhone(request.getDriverPhone());
+                driver.setRideInProgress(false);
+                userRepository.save(driver);
+            }
+
+            User user = userRepository.findByUserPhone(initialRequest.getDriverPhone());//The variable name rephrasing
 
             if(user != null){
-                if(user.getUserType()=="Driver"){//driver cancelled the request.
+                if(user.getUserType().equals("Driver")){//driver cancelled the request.
                     User rider = userRepository.findByUserPhone(request.getUserPhone());
                     pushRideCancelledMessage(request,user);
                     pushRideCancelledMessage(request,rider);
@@ -335,7 +334,13 @@ public class RequestController {
                 request.setRideCancelled(true);
                 requestRepository.save(request);
 
-                //TODO log cancellation to DB
+                //cancellation logged in DB
+                RequestCancellation requestCancellation = new RequestCancellation();
+                requestCancellation.setRequestID(request.getId());
+                requestCancellation.setUserPhone(initialRequest.getDriverPhone());//can be user or driver
+                requestCancellation.setCancellationTime(new Date());
+
+                requestCancellationRepository.save(requestCancellation);//save
 
                 //send ack
                 rs.setStatus("Success");
@@ -452,5 +457,40 @@ public class RequestController {
         driverLocationUpdate.put("driverLatitude",driver.getCurrentLatitude());
         driverLocationUpdate.put("driverLongitude",driver.getCurrentLongitude());
         pusher.trigger(request.getUserPhone(), "driver_location_updated",driverLocationUpdate);
+    }
+
+    private User getClosestDriverToCustomer(LatLng customerLocation, ArrayList<User> exceptions) {
+        Iterable <User> availableDrivers = userRepository.findAllByAvailability(true);
+        for (User possibleDriver : availableDrivers) {
+            LatLng driverLocation = new LatLng(Double.parseDouble(possibleDriver.getCurrentLatitude()),Double.parseDouble(possibleDriver.getCurrentLongitude()));
+            double distanceToCustomer = distance(driverLocation.lat,driverLocation.lng,customerLocation.lat,customerLocation.lng);
+            if(distanceToCustomer < DISTANCE_THRESHOLD && (!possibleDriver.getRideInProgress())){
+                if(exceptions == null)
+                    return possibleDriver;
+                else if(!exceptions.contains(possibleDriver))
+                    return possibleDriver;
+            }
+        }
+        return null;
+    }
+
+    private static double distance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+        dist = Math.acos(dist);
+        dist = rad2deg(dist);
+        dist = dist * 60 * 1.1515;
+        //convert to kilometers
+        dist = dist * 1.609344;
+
+        return (dist);
+    }
+
+    private static double deg2rad(double deg) {
+        return (deg * Math.PI / 180.0);
+    }
+
+    private static double rad2deg(double rad) {
+        return (rad * 180 / Math.PI);
     }
 }
