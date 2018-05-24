@@ -30,7 +30,7 @@ public class RequestController {
     public final String PUSHER_SECRET= "896c5ab9b5d25bebcad2";
     public final String PUSHER_CLUSTER= "ap2";
     public final boolean PUSHER_ENCRYPTION= true;
-    public final double DISTANCE_THRESHOLD = 5.0;//
+    public final double DISTANCE_THRESHOLD = 500000.0;//TODO change this to an appropiate figure
 
     //Fare multipliers
     public final long BASEFARE = 120;
@@ -196,7 +196,7 @@ public class RequestController {
         }
         else if(requestRepository.existsById(Long.valueOf(Integer.parseInt(initialRequest.getRequestId())))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
-
+            //TODO check if driver null 
             User driver = userRepository.findByUserPhone(request.getDriverPhone());
             driver.setCurrentLatitude(initialRequest.getDriverLatitude());
             driver.setCurrentLongitude(initialRequest.getDriverLongitude());
