@@ -273,6 +273,7 @@ public class RequestController {
         if(requestRepository.existsById(Long.valueOf(id))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
             request.setRideEndTime(new Date());//set time to now
+            requestRepository.save(request);
             long minutes = (request.getRideEndTime().getTime()- request.getRideStartTime().getTime())/(60*1000);
             int distance = Integer.parseInt(initialRequest.getDistance());
 
