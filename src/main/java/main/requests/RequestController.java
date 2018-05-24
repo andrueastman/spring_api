@@ -226,6 +226,7 @@ public class RequestController {
         if(initialRequest.getAvailability().equals("true"))
         {
             driver.setAvailability(true);
+            driver.setRideInProgress(false);//TODO review this. Enables drivers to get request again.
         }
         else{
             driver.setAvailability(false);
