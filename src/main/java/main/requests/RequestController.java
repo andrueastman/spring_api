@@ -231,7 +231,7 @@ public class RequestController {
             driver.setAvailability(false);
         }
         userRepository.save(driver);
-        
+
         rs.setStatus("Success");
         rs.setStatus("Driver Availability has been updated");
         return rs;
@@ -465,7 +465,7 @@ public class RequestController {
         for (User possibleDriver : availableDrivers) {
             LatLng driverLocation = new LatLng(Double.parseDouble(possibleDriver.getCurrentLatitude()),Double.parseDouble(possibleDriver.getCurrentLongitude()));
             double distanceToCustomer = distance(driverLocation.lat,driverLocation.lng,customerLocation.lat,customerLocation.lng);
-            if(distanceToCustomer < DISTANCE_THRESHOLD && (!possibleDriver.getRideInProgress())){
+            if(distanceToCustomer < DISTANCE_THRESHOLD && (((possibleDriver.getRideInProgress()) == null) || ((possibleDriver.getRideInProgress()) == false) ) ){
                 if(exceptions == null)
                     return possibleDriver;
                 else if(!exceptions.contains(possibleDriver))
