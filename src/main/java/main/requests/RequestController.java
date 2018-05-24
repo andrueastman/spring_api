@@ -196,7 +196,7 @@ public class RequestController {
         }
         else if(requestRepository.existsById(Long.valueOf(Integer.parseInt(initialRequest.getRequestId())))){
             Request request = (requestRepository.findById(Long.valueOf(initialRequest.getRequestId()))).get() ;
-            //TODO check if driver null 
+            //TODO check if driver null
             User driver = userRepository.findByUserPhone(request.getDriverPhone());
             driver.setCurrentLatitude(initialRequest.getDriverLatitude());
             driver.setCurrentLongitude(initialRequest.getDriverLongitude());
@@ -230,7 +230,8 @@ public class RequestController {
         else{
             driver.setAvailability(false);
         }
-
+        userRepository.save(driver);
+        
         rs.setStatus("Success");
         rs.setStatus("Driver Availability has been updated");
         return rs;
