@@ -275,10 +275,10 @@ public class RequestController {
             request.setRideEndTime(new Date());//set time to now
             requestRepository.save(request);
             long minutes = (request.getRideEndTime().getTime()- request.getRideStartTime().getTime())/(60*1000);
-            int distance = Integer.parseInt(initialRequest.getDistance());
+            float distance = Float.parseFloat(initialRequest.getDistance());
 
             //calculate fare
-            long cost = BASEFARE + (minutes * TIME_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER);
+            float cost = BASEFARE + (minutes * TIME_MULTIPLIER) + (distance * DISTANCE_MULTIPLIER);
             request.setRideTime(""+minutes);
             request.setCost(""+cost);
             request.setDistanceTravelled(initialRequest.getDistance());
