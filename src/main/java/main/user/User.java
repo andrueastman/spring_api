@@ -23,6 +23,8 @@ public class User {
 	//can be null for passenger
 	private String vehicleRegistration;
 
+	private String idNumber;
+
 	private String currentLatitude;
 
 	private String currentLongitude;
@@ -109,6 +111,14 @@ public class User {
 
 	public void setRideInProgress(Boolean rideInProgress) {
 		this.rideInProgress = rideInProgress;
+	}
+
+	public String getIdNumber() {
+		return idNumber;
+	}
+
+	public void setIdNumber(String idNumber) {
+		this.idNumber = idNumber;
 	}
 }
 
