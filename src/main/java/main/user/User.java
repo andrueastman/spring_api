@@ -33,7 +33,37 @@ public class User {
 
 	private Boolean rideInProgress;
 
-	public String getVehicleRegistration() {
+	private String profilePic;
+
+	private String driverLicence;
+
+    private String certificateOfGoodConduct;
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
+    }
+
+    public String getDriverLicence() {
+        return driverLicence;
+    }
+
+    public void setDriverLicence(String driverLicence) {
+        this.driverLicence = driverLicence;
+    }
+
+    public String getCertificateOfGoodConduct() {
+        return certificateOfGoodConduct;
+    }
+
+    public void setCertificateOfGoodConduct(String certificateOfGoodConduct) {
+        this.certificateOfGoodConduct = certificateOfGoodConduct;
+    }
+
+    public String getVehicleRegistration() {
 		return vehicleRegistration;
 	}
 
