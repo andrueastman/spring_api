@@ -35,7 +35,7 @@ public class UserController {
 
         if(n.getCertificateOfGoodConduct() != null){
             byte[] decoded = Base64.getMimeDecoder().decode(n.getCertificateOfGoodConduct());
-            String file_name=context.getRealPath("/")+"User_"+n.getUserPhone()+"_goodConduct.pdf";
+            String file_name=context.getRealPath("/")+"User_"+n.getUserPhone()+"_goodConduct.jpg";
             try {
                 new FileOutputStream(file_name).write(decoded);
             } catch (IOException e) {
@@ -44,15 +44,15 @@ public class UserController {
             n.setCertificateOfGoodConduct(file_name);
         }
 
-        if(n.getDriverLicence() != null){
-            byte[] decoded = Base64.getMimeDecoder().decode(n.getDriverLicence());
-            String file_name=context.getRealPath("/")+"User_"+n.getUserPhone()+"_driverLicence.pdf";
+        if(n.getDrivingLicence() != null){
+            byte[] decoded = Base64.getMimeDecoder().decode(n.getDrivingLicence());
+            String file_name=context.getRealPath("/")+"User_"+n.getUserPhone()+"_driverLicence.jpg";
             try {
                 new FileOutputStream(file_name).write(decoded);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            n.setDriverLicence(file_name);
+            n.setDrivingLicence(file_name);
         }
 
         if(userRepository.existsByUserPhone(n.getUserPhone())){

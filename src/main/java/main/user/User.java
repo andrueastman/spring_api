@@ -35,7 +35,7 @@ public class User {
 
 	private String profilePic;
 
-	private String driverLicence;
+	private String drivingLicence;
 
     private String certificateOfGoodConduct;
 
@@ -47,12 +47,12 @@ public class User {
         this.profilePic = profilePic;
     }
 
-    public String getDriverLicence() {
-        return driverLicence;
+    public String getDrivingLicence() {
+        return drivingLicence;
     }
 
-    public void setDriverLicence(String driverLicence) {
-        this.driverLicence = driverLicence;
+    public void setDrivingLicence(String drivingLicence) {
+        this.drivingLicence = drivingLicence;
     }
 
     public String getCertificateOfGoodConduct() {
