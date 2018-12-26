@@ -61,7 +61,8 @@ blocks:
         commands:
           - checkout
           - echo "make docker.push"
-  - name: "Push Image"
+          
+  - name: "Push Image to server 2"
     task:
       jobs:
       - name: Push
