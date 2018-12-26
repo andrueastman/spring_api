@@ -61,3 +61,10 @@ blocks:
         commands:
           - checkout
           - echo "make docker.push"
+  - name: "Push Image"
+    task:
+      jobs:
+      - name: Push
+        commands:
+          - checkout
+          - echo "make docker.push"
