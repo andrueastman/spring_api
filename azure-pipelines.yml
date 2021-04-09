@@ -12,7 +12,8 @@ jobs:
     vmImage: 'ubuntu-latest'
   steps:
   - pwsh: |
-    [System.AppDomain]::CurrentDomain.GetAssemblies()
+      [System.AppDomain]::CurrentDomain.GetAssemblies()
+    displayName: 'Generate type summary'
 - job: macOS
   pool:
     vmImage: 'macOS-latest'
