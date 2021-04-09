@@ -11,7 +11,8 @@ jobs:
   pool:
     vmImage: 'ubuntu-latest'
   steps:
-  - script: echo hello from Linux
+  - pwsh: |
+    [System.AppDomain]::CurrentDomain.GetAssemblies()
 - job: macOS
   pool:
     vmImage: 'macOS-latest'
